@@ -3,9 +3,12 @@ module github.com/jak3kaj/ePICmon
 go 1.21.6
 
 require (
+	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d
 	github.com/nfx/go-htmltable v0.4.0
 	github.com/rivo/tview v0.0.0-20240116070845-bf8f1c43e46c
 	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
+	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
