@@ -2,7 +2,6 @@ package report
 
 import (
 	"fmt"
-	"math"
 	"strings"
 
 	"golang.org/x/exp/maps"
@@ -12,6 +11,9 @@ import (
 	"github.com/jak3kaj/ePICmon/log"
 	"github.com/jak3kaj/ePICmon/power"
 )
+
+const Vc float64 = 212.0
+const Sqrt3 float64 = 1.7320508075688772935274463415058723669428052538103806280558069794519330169088000370811461867572485756756261414154 //https://oeis.org/A002194
 
 func Report(s *ePIC.Summary, o *Ocean.UserTable) string {
 	var rpt string
@@ -130,11 +132,11 @@ func Psu(s *ePIC.Summary) string {
 		}
 
 		rpt += fmt.Sprintf("Efficiency: %2.2fJ/TH\n", s.PsuStats.In_w/(sumMH/1000000))
-		rpt += fmt.Sprintf("%2.2fV      %4.0fW\n", s.PsuStats.Out_v, s.PsuStats.In_w)
+		rpt += fmt.Sprintf("%2.2fV      %4.0fW     %1.1f/%1.1fA\n", s.PsuStats.Out_v, s.PsuStats.In_w, s.PsuStats.In_w/Vc, s.PsuStats.In_w/Sqrt3/Vc)
 
 		rpt += fmt.Sprintf("Fan: %d%%   %.1fC", s.Fans.Speed, sumC/3)
 		if len(s.Fans.Mode) > 0 {
-			rpt += fmt.Sprintf("    %s", maps.Keys(s.Fans.Mode)[0])
+			rpt += fmt.Sprintf("     %s", maps.Keys(s.Fans.Mode)[0])
 		}
 		rpt += "\n"
 	}
@@ -164,15 +166,13 @@ func Board(s *ePIC.Summary, b *[3]log.Board) string {
 
 func Power(s *power.Power) string {
 	var rpt string
-	var v float64 = 212.0
 	var totW float64
 	for _, l := range s.Legs {
-		a := l.W/v
+		a := l.W / Vc
 		totW += l.W
-		rpt += fmt.Sprintf("Power Leg %s: %.2fW %.0fV %.2fA %.2fA\n", l.ID, l.W, v, a, a/math.Sqrt(3))
+		rpt += fmt.Sprintf("Power Leg %s: %.2fW %.0fV %.2fA %.2fA\n", l.ID, l.W, Vc, a, a/Sqrt3)
 	}
-	rpt += fmt.Sprintf("              %.2fW %.0fV %.2fA %.2fA\n", totW, v, totW/v, totW/v/math.Sqrt(3))
-
+	rpt += fmt.Sprintf("              %.2fW %.0fV %.2fA %.2fA\n", totW, Vc, totW/Vc, totW/Vc/Sqrt3)
 
 	return rpt
 }

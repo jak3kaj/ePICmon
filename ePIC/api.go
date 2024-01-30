@@ -7,16 +7,17 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"golang.org/x/exp/maps"
 	"github.com/jak3kaj/ePICmon/log"
+	"golang.org/x/exp/maps"
 )
+
+const Password = "Kr0d@D0rk!"
 
 type Host struct {
 	Host    string
 	Port    int
 	timeout int
 	counter int
-	Error   error
 }
 
 type POSTPerpetualTune struct {
@@ -39,80 +40,81 @@ func makeHost(host string) *Host {
 
 func GetLog(host string) (log.Logs, error) {
 	h := makeHost(host)
-	ls := h.getLog()
-	if ls == nil || h.Error != nil {
-		return nil, h.Error
+	ls, err := h.getLog()
+	if err != nil {
+		return nil, err
+	} else if ls == nil {
+		return nil, fmt.Errorf("getLog returned nil ls\n")
 	}
 	return *ls, nil
 }
 
-func (h *Host) getLog() *log.Logs {
+func (h *Host) getLog() (*log.Logs, error) {
 	endpoint := "log"
-	respData := h.getIt(endpoint)
-	if respData == nil {
-		return nil
+	respData, err := h.getIt(endpoint)
+	if err != nil {
+		return nil, err
+	} else if respData == nil {
+		return nil, fmt.Errorf("getIt returned nil ls\n")
 	}
 
 	// Unmarshall will throw an error by design
-	if ls, err := log.UnmarshalJSON(*respData); err != nil {
-		h.Error = fmt.Errorf("Failed to Unmarshall JSON from %s endpoint. Response Body: %s\n", endpoint, err)
-	} else {
-		return &ls
+	if ls, err := log.UnmarshalJSON(*respData); err == nil {
+		return &ls, nil
 	}
-	return nil
+	err = fmt.Errorf("Failed to Unmarshall JSON from %s endpoint. Response Body: %s\n", endpoint, err)
+	return nil, err
 }
 
-func GetSummary(host string) *Summary {
+func GetSummary(host string) (*Summary, error) {
 	h := makeHost(host)
 	return h.getSummary()
 }
 
-func (h *Host) getSummary() *Summary {
+func (h *Host) getSummary() (*Summary, error) {
 	sum := &Summary{}
 	h.counter += 1
 
-	respData := h.getIt("summary")
-	if respData == nil {
-		return nil
+	respData, err := h.getIt("summary")
+	if err != nil {
+		return nil, err
+	} else if respData == nil {
+		return nil, fmt.Errorf("Getting Summary returned nil\n")
 	}
 
 	if err := json.Unmarshal(*respData, sum); err != nil {
-		h.Error = fmt.Errorf("Failed to Unmarshall JSON from response Body: %s\n", err)
-		return nil
+		return nil, fmt.Errorf("Failed to Unmarshall JSON from response Body: %s\n", err)
 	}
 
 	if sum == nil || sum.Result == nil {
-		return sum
+		return sum, nil
 	}
 
 	if h.counter <= h.timeout {
 		return h.getSummary()
 	}
 
-	return nil
+	return nil, nil
 }
 
-func (h *Host) getIt(endpoint string) *[]byte {
+func (h *Host) getIt(endpoint string) (*[]byte, error) {
 	resp, err := http.Get(fmt.Sprintf("http://%s:%d/%s", h.Host, h.Port, endpoint))
 
 	if err != nil {
-		h.Error = fmt.Errorf("Failed to Get data: %s\n", err)
-		return nil 
+		return nil, fmt.Errorf("Failed to Get data: %s\n", err)
 	}
 
 	if resp.StatusCode < 200 && resp.StatusCode >= 400 {
-		h.Error = fmt.Errorf("Failed to Get data: %s\n", resp.Status)
-		return nil
+		return nil, fmt.Errorf("Failed to Get data: %s\n", resp.Status)
 	}
 
 	respData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		h.Error = fmt.Errorf("Failed to read response Body: %s\n", err)
-		return nil
-	}
 	resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read response Body: %s\n", err)
+	}
 
-	return &respData
+	return &respData, nil
 }
 
 func ResetThrottle(host string, s *Summary) bool {
@@ -123,7 +125,7 @@ func ResetThrottle(host string, s *Summary) bool {
 	}
 	pt := &POSTPerpetualTune{
 		Params:   p,
-		Password: "Kr0d@D0rk!",
+		Password: Password,
 	}
 	return h.resetThrottle(pt)
 }
@@ -139,11 +141,12 @@ func (h *Host) resetThrottle(pt *POSTPerpetualTune) bool {
 	}
 }
 
-func GetBoards(host string) *[3]log.Board {
+func GetBoards(host string) (*[3]log.Board, error) {
 	var ls log.Logs
-	var err error
+	var err error = nil
 	if ls, err = GetLog(host); err != nil {
-		fmt.Printf("GetLog Error: %#v\n", err)
+		// Don't report an error
+		return nil, nil
 	}
 
 	//log.GetBoard(
@@ -154,12 +157,12 @@ func GetBoards(host string) *[3]log.Board {
 	}
 
 	var boards []*log.Board
-	if err := log.FindBoards(&logBytes, &boards); err != nil {
-		fmt.Printf("Error running log.FindBoards: %s\n", err)
+	if err = log.FindBoards(&logBytes, &boards); err != nil {
+		err = fmt.Errorf("Error running log.FindBoards: %s\n", err)
 	}
 	var a [3]log.Board
 	for _, b := range boards {
 		a[b.HB] = *b
 	}
-	return &a
+	return &a, err
 }

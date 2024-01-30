@@ -20,16 +20,18 @@ type textView map[string]*tview.TextView
 type textUpdate map[string]textView
 
 type Model struct {
-	hosts      []string
-	power      *power.Power
-	hostPower  map[string][]*power.Leg
-	btcAddr    string
-	siteData   map[string]*ePIC.Summary
-	oceanData  map[string]*Ocean.UserTable
-	textUpdate textUpdate
-	boardData  map[string]*[3]log.Board
-	app        *tview.Application
-	mutex      *sync.RWMutex
+	hosts          []string
+	power          *power.Power
+	hostPower      map[string][]*power.Leg
+	btcAddr        string
+	siteData       map[string]*ePIC.Summary
+	oceanData      map[string]*Ocean.UserTable
+	textUpdate     textUpdate
+	boardData      map[string]*[3]log.Board
+	siteDataError  map[string]error
+	boardDataError map[string]error
+	app            *tview.Application
+	mutex          *sync.RWMutex
 }
 
 func initModel() *Model {
@@ -57,6 +59,9 @@ func initModel() *Model {
 	for _, host := range m.hosts {
 		m.boardData[host] = nil
 	}
+
+	m.siteDataError = make(map[string]error)
+	m.boardDataError = make(map[string]error)
 
 	return m
 }
@@ -173,19 +178,30 @@ func (m Model) refreshData(t int) {
 				continue
 			}
 			for _, leg := range m.hostPower[host] {
-				leg.AddLoad(m.siteData[host].PsuStats.In_w/2)
+				leg.AddLoad(m.siteData[host].PsuStats.In_w / 2)
 			}
 
 			m.app.QueueUpdateDraw(func() {
 				m.mutex.RLock()
-				m.textUpdate[host]["status"].
-					SetText(report.Status(m.siteData[host]))
-				m.textUpdate[host]["host"].
-					SetText(report.Performance(m.siteData[host], m.oceanData[host]))
-				m.textUpdate[host]["psu"].
-					SetText(report.Psu(m.siteData[host]))
-				m.textUpdate[host]["board"].
-					SetText(report.Board(m.siteData[host], m.boardData[host]))
+				if m.siteDataError[host] == nil {
+					m.textUpdate[host]["status"].
+						SetText(report.Status(m.siteData[host]))
+					m.textUpdate[host]["host"].
+						SetText(report.Performance(m.siteData[host], m.oceanData[host]))
+					m.textUpdate[host]["psu"].
+						SetText(report.Psu(m.siteData[host]))
+					if m.boardDataError[host] == nil {
+						m.textUpdate[host]["board"].
+							SetText(report.Board(m.siteData[host], m.boardData[host]))
+					} else {
+						m.textUpdate[host]["board"].SetText(fmt.Sprint(m.boardDataError[host]))
+					}
+				} else {
+					m.textUpdate[host]["status"].SetText(fmt.Sprint(m.siteDataError[host]))
+					m.textUpdate[host]["host"].Clear()
+					m.textUpdate[host]["psu"].Clear()
+					m.textUpdate[host]["board"].Clear()
+				}
 				m.mutex.RUnlock()
 			})
 		}
@@ -224,7 +240,7 @@ func (m Model) getData() {
 		go func() {
 			defer wg.Done()
 			m.mutex.Lock()
-			m.siteData[host] = ePIC.GetSummary(host)
+			m.siteData[host], m.siteDataError[host] = ePIC.GetSummary(host)
 			m.mutex.Unlock()
 		}()
 
@@ -236,9 +252,9 @@ func (m Model) getData() {
 func (m Model) getLogData(t int) {
 	for {
 		for _, host := range m.hosts {
-			m.boardData[host] = ePIC.GetBoards(host)
+			m.boardData[host], m.boardDataError[host] = ePIC.GetBoards(host)
 		}
-			/*
+		/*
 			host := host
 			go func() {
 				m.mutex.Lock()
@@ -247,14 +263,14 @@ func (m Model) getLogData(t int) {
 				}
 				m.mutex.Unlock()
 			}()
-			*/
-
+		*/
 
 		time.Sleep(time.Duration(t) * time.Second)
 
 	}
 }
-	/*
+
+/*
 	for _, host := range m.hosts {
 		if m.boardData[host] != nil {
 			for i, b := range m.boardData[host] {
@@ -262,4 +278,4 @@ func (m Model) getLogData(t int) {
 			}
 		}
 	}
-	*/
+*/

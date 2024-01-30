@@ -120,30 +120,30 @@ type Summary struct {
 }
 
 type Board struct {
-	SerialNum string `yaml:"Board Serial No"` //   NGSBYPDBCJHAA0BKC
-	ChipDie string `yaml:"Chip Die"` //          ED
-	ChipMarking string `yaml:"Chip Marking"` //      S1GX23BF1L
-	ChipBin int `yaml:"Chip Bin"` //          4
-	FTVersion string `yaml:"FT Version"` //        F1V22B3C1
-	PCBVersion int `yaml:"PCB Version"` //       220
-	BOMVersion int `yaml:"BOM Version"` //       0
-	ASICSensorType string  `yaml:"ASIC Sensor Type"` //  Some(0)
+	SerialNum       string `yaml:"Board Serial No"`   //   NGSBYPDBCJHAA0BKC
+	ChipDie         string `yaml:"Chip Die"`          //          ED
+	ChipMarking     string `yaml:"Chip Marking"`      //      S1GX23BF1L
+	ChipBin         int    `yaml:"Chip Bin"`          //          4
+	FTVersion       string `yaml:"FT Version"`        //        F1V22B3C1
+	PCBVersion      int    `yaml:"PCB Version"`       //       220
+	BOMVersion      int    `yaml:"BOM Version"`       //       0
+	ASICSensorType  string `yaml:"ASIC Sensor Type"`  //  Some(0)
 	ASICSensorAddr0 string `yaml:"ASIC Sensor Addr0"` // Some(0)
 	ASICSensorAddr1 string `yaml:"ASIC Sensor Addr1"` // Some(0)
 	ASICSensorAddr2 string `yaml:"ASIC Sensor Addr2"` // Some(0)
 	ASICSensorAddr3 string `yaml:"ASIC Sensor Addr3"` // Some(0)
-	PICSensorType string `yaml:"PIC Sensor Type"` //   Some(0)
-	PICSensorAddr string `yaml:"PIC Sensor Addr"` //   Some(0)
-	ChipTech string `yaml:"Chip Tech"` //         AL
-	BoardName string `yaml:"Board Name"` //        Some("BHB56801")
-	FactoryJob string `yaml:"Factory Job"` //       Some("NGSB20230801001")
-	DefaultVolt int `yaml:"Default Volt"` //      12900
-	DefaultClk int `yaml:"Default Clk"` //       485
-	NonceRate string `yaml:"Nonce Rate"` //        Some(9950)
-	PCBTempIn string `yaml:"PCB Temp In"` //       Some(0)
-	PCBTempOut string `yaml:"PCB Temp Out"` //      Some(0)
-	TestVersion string `yaml:"Test Version"` //      Some(0)
-	TestStandard string `yaml:"Test Standard"` //     Some(1)
-	PT2Result string `yaml:"PT2 Result"` //        Some(1)
-	PT2Count string `yaml:"PT2 Count"` //         Some(2)
+	PICSensorType   string `yaml:"PIC Sensor Type"`   //   Some(0)
+	PICSensorAddr   string `yaml:"PIC Sensor Addr"`   //   Some(0)
+	ChipTech        string `yaml:"Chip Tech"`         //         AL
+	BoardName       string `yaml:"Board Name"`        //        Some("BHB56801")
+	FactoryJob      string `yaml:"Factory Job"`       //       Some("NGSB20230801001")
+	DefaultVolt     int    `yaml:"Default Volt"`      //      12900
+	DefaultClk      int    `yaml:"Default Clk"`       //       485
+	NonceRate       string `yaml:"Nonce Rate"`        //        Some(9950)
+	PCBTempIn       string `yaml:"PCB Temp In"`       //       Some(0)
+	PCBTempOut      string `yaml:"PCB Temp Out"`      //      Some(0)
+	TestVersion     string `yaml:"Test Version"`      //      Some(0)
+	TestStandard    string `yaml:"Test Standard"`     //     Some(1)
+	PT2Result       string `yaml:"PT2 Result"`        //        Some(1)
+	PT2Count        string `yaml:"PT2 Count"`         //         Some(2)
 }
