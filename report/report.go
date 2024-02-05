@@ -12,7 +12,6 @@ import (
 	"github.com/jak3kaj/ePICmon/power"
 )
 
-const Vc float64 = 212.0
 const Sqrt3 float64 = 1.7320508075688772935274463415058723669428052538103806280558069794519330169088000370811461867572485756756261414154 //https://oeis.org/A002194
 
 func Report(s *ePIC.Summary, o *Ocean.UserTable) string {
@@ -118,7 +117,7 @@ func Performance(s *ePIC.Summary, o *Ocean.UserTable) string {
 	return rpt
 }
 
-func Psu(s *ePIC.Summary) string {
+func Psu(s *ePIC.Summary, Vc float64) string {
 	var rpt string
 	var sumC float64
 	var sumMH float64
@@ -132,13 +131,16 @@ func Psu(s *ePIC.Summary) string {
 		}
 
 		rpt += fmt.Sprintf("Efficiency: %2.2fJ/TH\n", s.PsuStats.In_w/(sumMH/1000000))
-		rpt += fmt.Sprintf("%2.2fV      %4.0fW     %1.1f/%1.1fA\n", s.PsuStats.Out_v, s.PsuStats.In_w, s.PsuStats.In_w/Vc, s.PsuStats.In_w/Sqrt3/Vc)
+		rpt += fmt.Sprintf("%2.2fV      %4.0fW     %1.1fA\n", s.PsuStats.Out_v, s.PsuStats.In_w, s.PsuStats.In_w/Vc) 
 
 		rpt += fmt.Sprintf("Fan: %d%%   %.1fC", s.Fans.Speed, sumC/3)
+        /*
 		if len(s.Fans.Mode) > 0 {
 			rpt += fmt.Sprintf("     %s", maps.Keys(s.Fans.Mode)[0])
 		}
-		rpt += "\n"
+        */
+        software, _ := strings.CutPrefix(s.Software, "PowerPlay-BM v")
+		rpt += fmt.Sprintf("     %s\n", software)
 	}
 
 	return rpt
@@ -164,16 +166,21 @@ func Board(s *ePIC.Summary, b *[3]log.Board) string {
 	return rpt
 }
 
-func Power(s *power.Power) string {
-	var rpt string
-	var totW float64
-	for _, l := range s.Legs {
-		a := l.W / Vc
-		totW += l.W
-		rpt += fmt.Sprintf("Power Leg %s: %.2fW %.0fV %.2fA %.2fA\n", l.ID, l.W, Vc, a, a/Sqrt3)
+func Power(s *power.Power) []string {
+	var rpt []string
+	for _, p := range s.Panels {
+		for _, c := range p.Circuits {
+            var r string
+			var totW float64
+			for _, l := range c.Legs {
+				a := l.W / p.V
+				totW += l.W
+				r += fmt.Sprintf("%s: %.2fW %.0fV %.2fA %.2fA\n", l.ID, l.W, p.V, a, a/Sqrt3)
+			}
+			r += fmt.Sprintf("    %.2fW %.0fV %.2fA %.2fA\n", totW, p.V, totW/p.V, totW/p.V/Sqrt3)
+			rpt = append(rpt, r)
+		}
 	}
-	rpt += fmt.Sprintf("              %.2fW %.0fV %.2fA %.2fA\n", totW, Vc, totW/Vc, totW/Vc/Sqrt3)
-
 	return rpt
 }
 

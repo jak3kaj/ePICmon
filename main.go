@@ -38,7 +38,8 @@ func initModel() *Model {
 	m := new(Model)
 	m.hostPower = make(map[string][]*power.Leg)
 	m.btcAddr = "bc1qluhcxmzf8up8m8625gtl74458jemt8jcgrp3u3"
-	m.hosts = []string{"miner001", "miner002", "miner005", "miner006", "miner007", "miner008"}
+	m.hosts = []string{"miner001", "miner002", "miner003", "miner004", "miner005",
+		"miner006", "miner007", "miner008", "miner009", "miner010"}
 	//m.hosts = []string{"miner005", "miner006", "miner007"}
 
 	m.siteData = make(map[string]*ePIC.Summary)
@@ -47,12 +48,17 @@ func initModel() *Model {
 
 	// Define power connections
 	m.power = power.Init()
-	m.hostPower["miner005"] = []*power.Leg{m.power.Legs[0], m.power.Legs[1]}
-	m.hostPower["miner006"] = []*power.Leg{m.power.Legs[1], m.power.Legs[2]}
-	m.hostPower["miner007"] = []*power.Leg{m.power.Legs[0], m.power.Legs[2]}
-	m.hostPower["miner008"] = []*power.Leg{m.power.Legs[0], m.power.Legs[1]}
-	m.hostPower["miner001"] = []*power.Leg{m.power.Legs[1], m.power.Legs[2]}
-	m.hostPower["miner002"] = []*power.Leg{m.power.Legs[0], m.power.Legs[2]}
+	m.hostPower["miner005"] = []*power.Leg{m.power.Panels[0].Circuits[0].Legs[0], m.power.Panels[0].Circuits[0].Legs[1]}
+	m.hostPower["miner006"] = []*power.Leg{m.power.Panels[0].Circuits[0].Legs[1], m.power.Panels[0].Circuits[0].Legs[2]}
+	m.hostPower["miner007"] = []*power.Leg{m.power.Panels[0].Circuits[0].Legs[0], m.power.Panels[0].Circuits[0].Legs[2]}
+	m.hostPower["miner008"] = []*power.Leg{m.power.Panels[0].Circuits[0].Legs[0], m.power.Panels[0].Circuits[0].Legs[1]}
+	m.hostPower["miner001"] = []*power.Leg{m.power.Panels[0].Circuits[0].Legs[1], m.power.Panels[0].Circuits[0].Legs[2]}
+	m.hostPower["miner002"] = []*power.Leg{m.power.Panels[0].Circuits[0].Legs[0], m.power.Panels[0].Circuits[0].Legs[2]}
+
+	m.hostPower["miner009"] = []*power.Leg{m.power.Panels[0].Circuits[1].Legs[0], m.power.Panels[0].Circuits[1].Legs[2]}
+	m.hostPower["miner010"] = []*power.Leg{m.power.Panels[0].Circuits[1].Legs[0], m.power.Panels[0].Circuits[1].Legs[1]}
+	m.hostPower["miner003"] = []*power.Leg{m.power.Panels[0].Circuits[1].Legs[1], m.power.Panels[0].Circuits[1].Legs[2]}
+	m.hostPower["miner004"] = []*power.Leg{m.power.Panels[0].Circuits[1].Legs[0], m.power.Panels[0].Circuits[1].Legs[2]}
 
 	m.mutex = &sync.RWMutex{}
 	m.boardData = make(map[string]*[3]log.Board)
@@ -102,7 +108,6 @@ func main() {
 		grid.AddItem(m.textUpdate[host]["board"], i, 3, 1, 1, 0, 0, true)
 	}
 	// Line after the last host
-	i += 1
 	//if m.textUpdate["Total"] == nil {
 	//	m.textUpdate["Total"] = make(textView)
 	//}
@@ -112,9 +117,15 @@ func main() {
 	if m.textUpdate["Power"] == nil {
 		m.textUpdate["Power"] = make(textView)
 	}
-	m.textUpdate["Power"]["Watts"] = newPrimitive("")
-	m.textUpdate["Power"]["Watts"] = newPrimitive("Circuit ")
-	grid.AddItem(m.textUpdate["Power"]["Watts"], i, 1, 1, 1, 0, 0, true)
+	for pi, p := range m.power.Panels {
+		for ci, _ := range p.Circuits {
+	        i += 1
+			cName := fmt.Sprintf("Circuit %d ", pi+ci+1)
+			m.textUpdate["Power"][cName] = newPrimitive("")
+			m.textUpdate["Power"][cName] = newPrimitive(cName)
+			grid.AddItem(m.textUpdate["Power"][cName], i, 1, 1, 1, 0, 0, true)
+		}
+	}
 
 	m.app = tview.NewApplication()
 
@@ -170,13 +181,18 @@ func (m Model) refreshData(t int) {
 		//var t map[string]float64
 		//t = make(map[string]float64)
 		m.getData()
-		for _, leg := range m.power.Legs {
-			leg.ClearLoad()
+		for _, p := range m.power.Panels {
+			for _, c := range p.Circuits {
+				for _, leg := range c.Legs {
+					leg.ClearLoad()
+				}
+			}
 		}
 		for _, host := range m.hosts {
 			if m.siteData[host] == nil {
 				continue
 			}
+
 			for _, leg := range m.hostPower[host] {
 				leg.AddLoad(m.siteData[host].PsuStats.In_w / 2)
 			}
@@ -189,7 +205,7 @@ func (m Model) refreshData(t int) {
 					m.textUpdate[host]["host"].
 						SetText(report.Performance(m.siteData[host], m.oceanData[host]))
 					m.textUpdate[host]["psu"].
-						SetText(report.Psu(m.siteData[host]))
+						SetText(report.Psu(m.siteData[host], m.power.Panels[0].V))
 					if m.boardDataError[host] == nil {
 						m.textUpdate[host]["board"].
 							SetText(report.Board(m.siteData[host], m.boardData[host]))
@@ -207,10 +223,16 @@ func (m Model) refreshData(t int) {
 		}
 		m.app.QueueUpdateDraw(func() {
 			m.mutex.RLock()
-			m.textUpdate["Power"]["Watts"].
-				SetText(report.Power(m.power))
-			//m.textUpdate["Total"]["THs"].
-			//	SetText(report.Total(t))
+			rpt := report.Power(m.power)
+			for pi, p := range m.power.Panels {
+				for ci, _ := range p.Circuits {
+					cName := fmt.Sprintf("Circuit %d ", pi+ci+1)
+					m.textUpdate["Power"][cName].
+						SetText(rpt[pi+ci])
+					//m.textUpdate["Total"]["THs"].
+					//	SetText(report.Total(t))
+				}
+			}
 			m.mutex.RUnlock()
 		})
 		time.Sleep(time.Duration(t) * time.Second)

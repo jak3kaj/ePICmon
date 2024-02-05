@@ -5,13 +5,29 @@ type Leg struct {
 	W  float64
 }
 
-type Power struct {
+type Circuit struct {
 	Legs []*Leg
+}
+
+type Panel struct {
+	Circuits []*Circuit
+	V        float64
+}
+
+type Power struct {
+	Panels []*Panel
 }
 
 func Init() *Power {
 	p := Power{}
-	p.Legs = []*Leg{&Leg{ID: "1-2"}, &Leg{ID: "2-3"}, &Leg{ID: "3-1"}}
+	p0 := new(Panel)
+	p0.V = 212.0
+	c0 := new(Circuit)
+	c1 := new(Circuit)
+	c0.Legs = []*Leg{&Leg{ID: "1-2"}, &Leg{ID: "2-3"}, &Leg{ID: "3-1"}}
+	c1.Legs = []*Leg{&Leg{ID: "1-2"}, &Leg{ID: "2-3"}, &Leg{ID: "3-1"}}
+	p0.Circuits = []*Circuit{c0, c1}
+	p.Panels = []*Panel{p0}
 	return &p
 }
 
