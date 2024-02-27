@@ -175,13 +175,27 @@ func Power(s *power.Power) []string {
 			for _, l := range c.Legs {
 				a := l.W / p.V
 				totW += l.W
-				r += fmt.Sprintf("%s: %.2fW %.0fV %.2fA %.2fA\n", l.ID, l.W, p.V, a, a/Sqrt3)
+				r += fmt.Sprintf("%s: %8.2fW %3.0fV %5.2fA %5.2fA\n", l.ID, l.W, p.V, a, a/Sqrt3)
 			}
-			r += fmt.Sprintf("    %.2fW %.0fV %.2fA %.2fA\n", totW, p.V, totW/p.V, totW/p.V/Sqrt3)
+			r += fmt.Sprintf("     %8.2fW %3.0fV %5.2fA %5.2fA\n", totW, p.V, totW/p.V, totW/p.V/Sqrt3)
 			rpt = append(rpt, r)
 		}
 	}
 	return rpt
+}
+
+func TotalPower(s *power.Power) string {
+	var totW float64
+	var v float64
+	for _, p := range s.Panels {
+		for _, c := range p.Circuits {
+			for _, l := range c.Legs {
+				v = p.V
+				totW += l.W
+			}
+		}
+	}
+	return fmt.Sprintf("%8.2fW %3.0fV %5.2fA %5.2fA\n", totW, v, totW/v, totW/v/Sqrt3)
 }
 
 func uptime(d int) []any {
