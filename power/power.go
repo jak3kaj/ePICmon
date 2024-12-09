@@ -24,9 +24,13 @@ func Init() *Power {
 	p0.V = 212.0
 	c0 := new(Circuit)
 	c1 := new(Circuit)
+	c2 := new(Circuit)
+	c3 := new(Circuit)
 	c0.Legs = []*Leg{&Leg{ID: "1-2"}, &Leg{ID: "2-3"}, &Leg{ID: "3-1"}}
 	c1.Legs = []*Leg{&Leg{ID: "1-2"}, &Leg{ID: "2-3"}, &Leg{ID: "3-1"}}
-	p0.Circuits = []*Circuit{c0, c1}
+	c2.Legs = []*Leg{&Leg{ID: "1-2"}, &Leg{ID: "2-3"}, &Leg{ID: "3-1"}}
+	c3.Legs = []*Leg{&Leg{ID: "1-2"}, &Leg{ID: "2-3"}, &Leg{ID: "3-1"}}
+	p0.Circuits = []*Circuit{c0, c1, c2, c3}
 	p.Panels = []*Panel{p0}
 	return &p
 }
