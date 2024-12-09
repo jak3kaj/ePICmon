@@ -83,6 +83,7 @@ func (h *Host) getSummary() (*Summary, error) {
 	}
 
 	if err := json.Unmarshal(*respData, sum); err != nil {
+		fmt.Printf("%s unmarshall failed: %s\n", h.Host, *respData)
 		return nil, fmt.Errorf("Failed to Unmarshall JSON from response Body: %s\n", err)
 	}
 
