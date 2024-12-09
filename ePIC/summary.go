@@ -4,7 +4,7 @@ type Status struct {
 	OperState      string            `json:"Operating State"`
 	LastCmd        string            `json:"Last Command"`
 	LastCmdResults map[string]string `json:"Last Command Result"`
-	Lasterr        string            `json:"Last Error"`
+	Lasterr        any               `json:"Last Error"`
 }
 
 type Stratum struct {
@@ -53,13 +53,15 @@ type Hashboard struct {
 }
 
 type Fans struct {
-	Speed int            `json:"Fans Speed"`
-	Mode  map[string]int `json:"Fan Mode"`
+	Speed   int            `json:"Fans Speed"`
+	Mode    map[string]any `json:"Fan Mode"`
+    MinFans int            `json:"Minimum Working Fans"`
 }
 
 type Misc struct {
 	Locate       bool    `json:"Locate Miner State"`
 	ShutdownTemp float64 `json:"Shutdown Temp"`
+    CriticalTemp float64 `json:"Critical Temp"`
 }
 
 type StratumConfig struct {
@@ -74,10 +76,12 @@ type PerpetualTune struct {
 }
 
 type TuneParams struct {
-	Optimized   bool   `json:"Optimized"`
-	Tgt         int    `json:"Target"`
-	ThrottleTgt int    `json:"Throttle Target"`
-	Unit        string `json:"Unit"`
+	Optimized      bool   `json:"Optimized"`
+	Tgt            int    `json:"Target"`
+	ThrottleTgt    int    `json:"Throttle Target"`
+    MinThrottleTgt int    `json:"Min Throttle Target"`
+	ThrottleStep   int    `json:"Throttle Step"`
+	Unit           string `json:"Unit"`
 }
 
 type PsuStats struct {
@@ -100,23 +104,25 @@ type Clk struct {
 }
 
 type Summary struct {
-	Status        Status            `json:"Status"`
-	Hostname      string            `json:"Hostname"`
-	PresetInfo    map[string]int    `json:"PresetInfo"`
-	Software      string            `json:"Software"`
-	Mining        map[string]string `json:"Mining"`
-	Stratum       Stratum           `json:"Stratum"`
-	Session       Session           `json:"Session"`
-	Hashboards    []Hashboard       `json:"HBs"`
-	Fans          Fans              `json:"Fans"`
-	FanRPMs       map[string]int    `json:"Fans Rpm"`
-	Misc          Misc              `json:"Misc"`
-	StratumConfig []StratumConfig   `json:"StratumConfigs"`
-	PerpetualTune PerpetualTune     `json:"PerpetualTune"`
-	PsuStats      PsuStats          `json:"Power Supply Stats"`
-	HwConfig      HwConfig          `json:"HwConfig"`
-	Result        *bool             `json:"result"`
-	Error         string            `json:"error"`
+	Status               Status            `json:"Status"`
+	Hostname             string            `json:"Hostname"`
+	PresetInfo           map[string]int    `json:"PresetInfo"`
+	Software             string            `json:"Software"`
+	Mining               map[string]string `json:"Mining"`
+	Stratum              Stratum           `json:"Stratum"`
+	Session              Session           `json:"Session"`
+	Hashboards           []Hashboard       `json:"HBs"`
+	Fans                 Fans              `json:"Fans"`
+	FanRPMs              map[string]int    `json:"Fans Rpm"`
+	Misc                 Misc              `json:"Misc"`
+	StratumConfig        []StratumConfig   `json:"StratumConfigs"`
+	PerpetualTune        PerpetualTune     `json:"PerpetualTune"`
+	PsuStats             PsuStats          `json:"Power Supply Stats"`
+	HwConfig             HwConfig          `json:"HwConfig"`
+	IdleOnConnectionLost *bool             `json:"IdleOnConnectionLost"`
+	Overdrive            *bool             `json:"Overdrive"`
+	Result               *bool             `json:"result"`
+	Error                string            `json:"error"`
 }
 
 type Board struct {
