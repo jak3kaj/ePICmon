@@ -112,7 +112,9 @@ func Performance(s *ePIC.Summary, o *Ocean.UserTable) string {
 
 		rpt += fmt.Sprintf("Avg:  %.2fTHs Shutdown: %.2fC\n", sumMH/1000000, s.Misc.ShutdownTemp)
 
-		rpt += fmt.Sprintf("Pool: %s0THs Earnings: %s\n", strings.TrimSuffix(o.Hashrate3hr, " Th/s"), o.Earnings)
+		if o != nil {
+			rpt += fmt.Sprintf("Pool: %s0THs Earnings: %s\n", strings.TrimSuffix(o.Hashrate3hr, " Th/s"), o.Earnings)
+		}
 	}
 	return rpt
 }
@@ -131,15 +133,15 @@ func Psu(s *ePIC.Summary, Vc float64) string {
 		}
 
 		rpt += fmt.Sprintf("Efficiency: %2.2fJ/TH\n", s.PsuStats.In_w/(sumMH/1000000))
-		rpt += fmt.Sprintf("%2.2fV      %4.0fW     %1.1fA\n", s.PsuStats.Out_v, s.PsuStats.In_w, s.PsuStats.In_w/Vc) 
+		rpt += fmt.Sprintf("%2.2fV      %4.0fW     %1.1fA\n", s.PsuStats.Out_v, s.PsuStats.In_w, s.PsuStats.In_w/Vc)
 
 		rpt += fmt.Sprintf("Fan: %d%%   %.1fC", s.Fans.Speed, sumC/3)
-        /*
-		if len(s.Fans.Mode) > 0 {
-			rpt += fmt.Sprintf("     %s", maps.Keys(s.Fans.Mode)[0])
-		}
-        */
-        software, _ := strings.CutPrefix(s.Software, "PowerPlay-BM v")
+		/*
+			if len(s.Fans.Mode) > 0 {
+				rpt += fmt.Sprintf("     %s", maps.Keys(s.Fans.Mode)[0])
+			}
+		*/
+		software, _ := strings.CutPrefix(s.Software, "PowerPlay-BM v")
 		rpt += fmt.Sprintf("     %s\n", software)
 	}
 
@@ -170,7 +172,7 @@ func Power(s *power.Power) []string {
 	var rpt []string
 	for _, p := range s.Panels {
 		for _, c := range p.Circuits {
-            var r string
+			var r string
 			var totW float64
 			for _, l := range c.Legs {
 				a := l.W / p.V
