@@ -38,7 +38,7 @@ func initModel() *Model {
 	m := new(Model)
 	m.hostPower = make(map[string][]*power.Leg)
 	m.btcAddr = "bc1qluhcxmzf8up8m8625gtl74458jemt8jcgrp3u3"
-	m.hosts = []string{"miner001", "miner002", "miner003", "miner004", "miner005", "miner006", "miner007", "miner008", "miner009", "miner010", "miner011"}
+	m.hosts = []string{"miner001", "miner002", "miner003", "miner004", "miner005", "miner006", "miner007", "miner008", "miner009", "miner010", "miner011", "miner012"}
 	// m.hosts = []string{"192.168.1.11", "192.168.1.12", "192.168.1.13", "192.168.1.14", "192.168.1.15", "192.168.1.16", "192.168.1.17", "192.168.1.18", "192.168.1.19", "192.168.1.20", "192.168.1.21"}
 
 	m.siteData = make(map[string]*ePIC.Summary)
@@ -77,6 +77,7 @@ func initModel() *Model {
 	m.hostPower["miner007"] = m.hostPower["192.168.1.17"]
 	m.hostPower["miner008"] = m.hostPower["192.168.1.18"]
 	m.hostPower["miner009"] = m.hostPower["192.168.1.19"]
+	m.hostPower["miner010"] = m.hostPower["192.168.1.20"]
 	m.hostPower["miner011"] = m.hostPower["192.168.1.21"]
 	m.hostPower["miner012"] = m.hostPower["192.168.1.22"]
 
