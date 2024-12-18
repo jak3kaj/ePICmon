@@ -2,13 +2,18 @@ package ePIC
 
 import (
 	"bytes"
+    "crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+    "os"
+    "syscall"
+
+	"golang.org/x/exp/maps"
+    "golang.org/x/term"
 
 	"github.com/jak3kaj/ePICmon/log"
-	"golang.org/x/exp/maps"
 )
 
 const Password = "Kr0d@D0rk!"
@@ -29,6 +34,14 @@ type POSTTuneParams struct {
 	Algo   string `json:"algo"`
 	Target int    `json:"target"`
 }
+
+type POSTSystemUpdate struct {
+    SHA256       string  `json:"checksum"`
+    KeepSettings bool    `json:"keepsettings"`
+	Password     string  `json:"password"`
+    File         *[]byte `json:"update.zip"`
+}
+
 
 func makeHost(host string) *Host {
 	return &Host{
@@ -166,4 +179,65 @@ func GetBoards(host string) (*[3]log.Board, error) {
 		a[b.HB] = *b
 	}
 	return &a, err
+}
+
+func UpgradeFirmware(host string, file string, ks_arg ...bool) bool {
+    ks := true
+    if len(ks_arg) > 0 {
+        ks = ks_arg[0]
+    }
+
+    zip := getFileBinaryData(file)
+    sum := fmt.Sprintf("%x", sha256.Sum256(*zip))
+    pw := PromptPass()
+    fw := &POSTSystemUpdate {
+        SHA256:       sum,
+        KeepSettings: ks,
+        Password:     pw,
+        File:         zip,
+    }
+
+	h := makeHost(host)
+    return h.upgradeFirmware(fw)
+}
+
+func PromptPass() string {
+    fmt.Print("Miner password:")
+
+    bytepw, err := term.ReadPassword(int(syscall.Stdin))
+    fmt.Println()
+    if err != nil {
+        os.Exit(1)
+    }
+
+    return string(bytepw)
+}
+
+func (h *Host) upgradeFirmware(fw *POSTSystemUpdate) bool {
+	payloadBuf := new(bytes.Buffer)
+	json.NewEncoder(payloadBuf).Encode(fw)
+
+    //fmt.Printf("http://%s:%d/%s\n%s:\n%s\n", h.Host, h.Port, "systemupdate", "application/json", payloadBuf)
+	resp, err := http.Post(fmt.Sprintf("http://%s:%d/%s", h.Host, h.Port, "systemupdate"), "application/json", payloadBuf)
+	if err != nil {
+		return false
+	} else {
+        fmt.Println("Response from miner: ", resp)
+		return true
+	}
+}
+
+func getFileBinaryData(filename string) *[]byte {
+    file, err := os.Open(filename)
+	if err != nil {
+        fmt.Printf("Failed to open file: %s\n", err)
+	}
+	defer file.Close()
+
+    data, err := ioutil.ReadAll(file)
+	if err != nil {
+        fmt.Printf("Failed to read file: %s\n", err)
+	}
+
+    return &data
 }
