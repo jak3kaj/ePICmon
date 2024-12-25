@@ -89,28 +89,30 @@ func Performance(s *ePIC.Summary, o *Ocean.UserTable) string {
 	var sumMH float64
 
 	if s != nil {
-		if s.PerpetualTune.Running {
-			algorithm := maps.Keys(s.PerpetualTune.Algorithm)[0]
-			rpt += fmt.Sprintf("Tgt:  %d.00THs", s.PerpetualTune.Algorithm[algorithm].Tgt)
-			if s.PerpetualTune.Algorithm[algorithm].ThrottleTgt > 0 {
-				rpt += fmt.Sprintf(" [\"Th\"]Throttled: %d.00THs[\"\"]", s.PerpetualTune.Algorithm[algorithm].ThrottleTgt)
-			}
-			rpt += fmt.Sprintf(" %s:", algorithm)
-			if s.PerpetualTune.Algorithm[algorithm].Optimized {
-				rpt += fmt.Sprintf(" Optimized")
-			} else {
-				rpt += fmt.Sprintf(" Not Optimized")
-			}
-			rpt += "\n"
-		}
-
 		for _, Hashboard := range s.Hashboards {
 			if len(Hashboard.Hashrate) > 0 {
 				sumMH += Hashboard.Hashrate[0]
 			}
 		}
 
-		rpt += fmt.Sprintf("Avg:  %.2fTHs Shutdown: %.2fC\n", sumMH/1000000, s.Misc.ShutdownTemp)
+		if s.PerpetualTune.Running {
+			algorithm := maps.Keys(s.PerpetualTune.Algorithm)[0]
+			rpt += fmt.Sprintf("Tgt/Avg:  %d.00/%.2fTHs", s.PerpetualTune.Algorithm[algorithm].Tgt, sumMH/1000000)
+			if s.PerpetualTune.Algorithm[algorithm].ThrottleTgt > 0 {
+				rpt += fmt.Sprintf(" [\"Th\"]Throttled: %d.00THs[\"\"]", s.PerpetualTune.Algorithm[algorithm].ThrottleTgt)
+			}
+			rpt += "\n"
+		    rpt += fmt.Sprintf("Shutdown: %.2fC\n", s.Misc.ShutdownTemp)
+			rpt += algorithm
+			if s.PerpetualTune.Algorithm[algorithm].Optimized {
+                rpt += fmt.Sprintf(": Optimized")
+			} else {
+                rpt += fmt.Sprintf(": Not Optimized")
+			}
+			rpt += "\n"
+		} else {
+		    rpt += fmt.Sprintf("Avg:  %.2fTHs\nShutdown: %.2fC\n", sumMH/1000000, s.Misc.ShutdownTemp)
+        }
 
 		if o != nil {
 			rpt += fmt.Sprintf("Pool: %s0THs Earnings: %s\n", strings.TrimSuffix(o.Hashrate3hr, " Th/s"), o.Earnings)

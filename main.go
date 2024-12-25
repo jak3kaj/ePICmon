@@ -39,7 +39,7 @@ func initModel() *Model {
 	m.hostPower = make(map[string][]*power.Leg)
 	m.btcAddr = "bc1qluhcxmzf8up8m8625gtl74458jemt8jcgrp3u3"
 	m.hosts = []string{"miner001", "miner002", "miner003", "miner004", "miner005", "miner006", "miner007", "miner008", "miner009", "miner010", "miner011", "miner012"}
-	// m.hosts = []string{"192.168.1.11", "192.168.1.12", "192.168.1.13", "192.168.1.14", "192.168.1.15", "192.168.1.16", "192.168.1.17", "192.168.1.18", "192.168.1.19", "192.168.1.20", "192.168.1.21"}
+	// m.hosts = []string{"192.168.1.11", "192.168.1.12", "192.168.1.13", "192.168.1.14", "192.168.1.15", "192.168.1.16", "192.168.1.17", "192.168.1.18", "192.168.1.19", "192.168.1.20", "192.168.1.21","192.168.1.22"}
 
 	m.siteData = make(map[string]*ePIC.Summary)
 	m.oceanData = make(map[string]*Ocean.UserTable)
@@ -139,13 +139,13 @@ func main() {
 		grid.AddItem(m.textUpdate[host]["status"], i, 0, 1, 1, 1, 1, false)
 
 		m.textUpdate[host]["host"] = newPrimitive("")
-		grid.AddItem(m.textUpdate[host]["host"], i, 1, 1, 2, 1, 2, false)
+		grid.AddItem(m.textUpdate[host]["host"], i, 1, 1, 1, 1, 2, false)
 
 		m.textUpdate[host]["psu"] = newPrimitive("")
-		grid.AddItem(m.textUpdate[host]["psu"], i, 3, 1, 1, 1, 1, false)
+		grid.AddItem(m.textUpdate[host]["psu"], i, 2, 1, 1, 1, 1, false)
 
 		m.textUpdate[host]["board"] = newPrimitive("")
-		grid.AddItem(m.textUpdate[host]["board"], i, 4, 1, 2, 1, 2, false)
+		grid.AddItem(m.textUpdate[host]["board"], i, 3, 1, 2, 1, 2, false)
 	}
 
 	m.app = tview.NewApplication()
